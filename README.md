@@ -20,7 +20,6 @@ DIRECT_URL="your_supabase_direct_url"
 YOUTUBE_API_KEY="your_youtube_api_key"
 GEMINI_API_KEY="your_gemini_api_key"
 AUTH_SECRET="your-long-random-secret"
-
 ```
 
 ### 3. Setup Prisma
@@ -51,7 +50,7 @@ Use these credentials for testing:
 
 Live Link - 
 ```text
-http://localhost:3000
+https://edu-tube-flax.vercel.app/
 ```
 
 ## 📸 Project Screenshots
