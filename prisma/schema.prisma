@@ -1,0 +1,148 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url      = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")
+}
+
+
+// =========================================================
+// USER
+// =========================================================
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  library      Library[]
+  notes        Note[]
+  progress     VideoProgress[]
+}
+
+
+// =========================================================
+// LIBRARY
+// =========================================================
+//
+// One record represents one YouTube video saved by a user.
+//
+// Example:
+// User A
+//   ├── React Course
+//   ├── Next.js Course
+//   └── Prisma Tutorial
+//
+
+model Library {
+  id        String   @id @default(cuid())
+
+  userId    String
+
+  // YouTube information
+  videoId   String
+  title     String
+  channel   String?
+  thumbnail String?
+  duration  Int?
+
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes    Note[]
+  progress VideoProgress?
+
+  // A user cannot save the same YouTube video twice
+  @@unique([userId, videoId])
+
+  @@index([userId])
+  @@index([videoId])
+}
+
+
+// =========================================================
+// NOTE
+// =========================================================
+//
+// Notes belong to a particular library video.
+//
+// Example:
+//
+// Video: Next.js Tutorial
+//
+// 02:15 → "App Router handles routing"
+// 10:42 → "Server components run on server"
+// 25:30 → "Use Prisma for database access"
+//
+
+model Note {
+  id        String   @id @default(cuid())
+
+  userId    String
+  libraryId String
+
+  // Timestamp in seconds from beginning of video
+  timestamp Int
+
+  content   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  library Library @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([libraryId])
+  @@index([libraryId, timestamp])
+}
+
+
+// =========================================================
+// VIDEO PROGRESS
+// =========================================================
+//
+// Stores how much of a video the user has watched.
+//
+// Example:
+//
+// watchedSeconds  = 1200
+// durationSeconds = 3600
+//
+// Progress = 33%
+//
+
+model VideoProgress {
+  id        String   @id @default(cuid())
+
+  userId    String
+  libraryId String @unique
+
+  watchedSeconds  Int @default(0)
+  durationSeconds Int @default(0)
+
+  completed Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  library Library @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
